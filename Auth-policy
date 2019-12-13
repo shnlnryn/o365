@@ -1,0 +1,10 @@
+$Users= get-user -ResultSize unlimited | where {$_.userprincipalname -like "*@mydomain.com" -and $_.authenticationpolicy -eq $null}|Select-Object userprincipalname, authenticationpolicy
+
+foreach ($User in $Users){
+
+$user.userprincipalname
+
+set-user -identity $User.userprincipalname -authenticationpolicy "Disable-All-Basic-Auth"
+
+
+}
