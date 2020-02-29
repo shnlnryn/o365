@@ -1,10 +1,17 @@
+# Get date when O365 license was assigned to a user.
+
+#ServicePlanId and SKUs  https://docs.microsoft.com/en-us/azure/active-directory/users-groups-roles/licensing-service-plan-reference
+
+
+
+
 $Cred = Get-Credential
 
 Connect-msolService -Credential $Cred
 Connect-AzureAD -Credential $Cred
 
 
-ProplusUsers = Get-MsolUser -MaxResults 10000 | Where-Object {($_.licenses).AccountSkuId -match "O365TENANT:OFFICESUBSCRIPTION"}
+ProplusUsers = Get-MsolUser -MaxResults 100000 | Where-Object {($_.licenses).AccountSkuId -match "O365TENANT:OFFICESUBSCRIPTION"}
 
 
 Foreach ($User in $ProplusUsers) {
@@ -27,18 +34,17 @@ $AssignedDate = $Details.AssignedTimestamp
 
 
 
-$object = New-Object –TypeName PSObject
-
-$object | Add-Member –MemberType NoteProperty –Name User –Value $User.UserPrincipalName
-$object | Add-Member –MemberType NoteProperty –Name Country –Value $User.Country
-$object | Add-Member –MemberType NoteProperty –Name UsageLocation –Value $User.UsageLocation
-$object | Add-Member –MemberType NoteProperty –Name Department –Value $User.Department
-$object | Add-Member –MemberType NoteProperty –Name State –Value $UsageLocation.State
-$object | Add-Member –MemberType NoteProperty –Name OfficeLocation –Value $UsageLocation.PhysicalDeliveryOffice
-$object | Add-Member –MemberType NoteProperty –Name Service –Value $Service
-$object | Add-Member –MemberType NoteProperty –Name AssignedDate –Value $AssignedDate
-
-$object
+$object = [pscustomobject]@{
+        User = $User.UserPrincipalName
+        Country = $UsageLocation.Country
+        City = $UsageLocation.City
+        UsageLocation = $UsageLocation.UsageLocation
+        Department = $UsageLocation.Department
+        State = $UsageLocation.State
+        OfficeLocation = $UsageLocation.PhysicalDeliveryOffice
+        Service = $Details.Service
+        AssignedDate = $Details.AssignedTimestamp
+        }
 
 $object | Export-CSV D:\temp\Pro_report.csv -NoTypeInformation -Append
 
